@@ -83,7 +83,9 @@ function App() {
       <Sidebar onCreate={openCreateModal} />
       <main className="dashboard-main">
         <Header />
-        <section className="roadmap-section">
+        {/* Prominent "My Goal Roadmap" section with visual progress bar */}
+        <section className="roadmap-section" style={{paddingTop: 0}}>
+          <MyGoalRoadmap goals={goals} />
           <RoadmapGoals
             goals={goals}
             onEdit={openEditModal}
@@ -131,6 +133,158 @@ function Sidebar({ onCreate }) {
         </button>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Prominent "My Goal Roadmap" section with a visual path/progress bar
+ */
+function MyGoalRoadmap({ goals }) {
+  // Calculate total completions and steps
+  // (Flatten all root goals and children into one level for linear progress)
+  const allGoals = goals.flatMap(g => [g, ...(g.children || [])]);
+  const total = allGoals.length;
+  const completed = allGoals.filter(g => g.status && g.status.toLowerCase() === "completed").length;
+  const percent = total > 0 ? Math.round(allGoals.reduce((acc, g) => acc + (g.progress || 0), 0) / total) : 0;
+
+  return (
+    <div className="my-goal-roadmap" style={{
+      background: "var(--bg-main)",
+      borderRadius: "var(--radius)",
+      boxShadow: "var(--shadow-md)",
+      border: "1px solid var(--border)",
+      padding: "32px 38px 28px 38px",
+      margin: "30px auto 44px auto",
+      maxWidth: 870,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      position: "relative"
+    }}>
+      <div style={{
+        fontSize: "1.3em",
+        fontWeight: 700,
+        color: "var(--primary)",
+        margin: "0 0 13px 0",
+        letterSpacing: "0.01em"
+      }}>
+        My Goal Roadmap
+      </div>
+      <div style={{
+        color: "var(--text-secondary)",
+        fontSize: "1.04em",
+        marginBottom: "18px",
+        textAlign: "center"
+      }}>
+        Track your overall progress at a glance. Complete steps to achieve your goals!
+      </div>
+      <RoadmapPathBar total={total} completed={completed} percent={percent} allGoals={allGoals} />
+    </div>
+  );
+}
+
+function RoadmapPathBar({ total, completed, percent, allGoals }) {
+  // Show up to 8 steps, use dots for more
+  const showGoals = total <= 8 ? allGoals : allGoals.slice(0, 7);
+  const hasEllipsis = total > 8;
+
+  return (
+    <div className="roadmap-path-bar" style={{
+      width: "100%",
+      maxWidth: 720,
+      minHeight: 76,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }}>
+      {/* Progress path */}
+      <div style={{
+        width: "100%",
+        padding: "18px 6px 0 6px",
+        display: "flex",
+        alignItems: "center",
+        position: "relative",
+        gap: 0
+      }}>
+        {showGoals.map((g, i) => (
+          <div key={g.id} style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            minWidth: 0
+          }}>
+            <div style={{
+              background: g.status && g.status.toLowerCase() === "completed"
+                ? "linear-gradient(90deg,var(--primary),var(--accent))"
+                : "var(--border)",
+              width: 22,
+              height: 22,
+              borderRadius: "50%",
+              boxShadow: g.status && g.status.toLowerCase() === "completed"
+                ? "0 2px 4px 0 rgba(45,90,210,.14)" : "0 1px 2px 0 rgba(21,28,55,.09)",
+              border: g.status && g.status.toLowerCase() === "completed"
+                ? "2px solid var(--primary)" : "1.5px solid var(--border)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 600,
+              fontSize: 13,
+              color: g.status && g.status.toLowerCase() === "completed"
+                ? "#fff"
+                : "var(--text-secondary)",
+              transition: "background .2s"
+            }}>
+              {g.status && g.status.toLowerCase() === "completed" ? <span>✓</span> : i + 1}
+            </div>
+            {i < showGoals.length - 1 && (
+              <div style={{
+                flex: 1,
+                height: 5,
+                margin: "0 0.4vw",
+                borderRadius: 3,
+                background: showGoals[i].status && showGoals[i].status.toLowerCase() === "completed"
+                  ? "linear-gradient(90deg,var(--primary) 50%,var(--accent) 90%)"
+                  : "var(--border)",
+                opacity: 0.93,
+                boxShadow: "0 0px 2px 0 rgba(20,32,65,0.04)"
+              }}/>
+            )}
+            {/* Ellipsis for extra steps */}
+            {hasEllipsis && i === showGoals.length - 1 &&
+              <span style={{
+                margin: "0 9px", color: "var(--secondary)", fontWeight: 700, fontSize: 21, lineHeight: "32px"
+              }}>…</span>
+            }
+          </div>
+        ))}
+      </div>
+      {/* Progress/Count bar & label */}
+      <div style={{
+        marginTop: 16, width: "96%"
+      }}>
+        <div className="goal-progress-bar" style={{margin: 0, height: 20}}>
+          <div
+            className="goal-progress-fill"
+            style={{
+              width: `${percent}%`,
+              minWidth: percent === 0 ? 20 : 32,
+              background: "linear-gradient(90deg,var(--primary),var(--accent))",
+              fontSize: "1.02em"
+            }}>
+            <span className="goal-progress-label">{percent}%</span>
+          </div>
+        </div>
+        <div style={{
+          textAlign: "right",
+          marginTop: 4,
+          fontSize: ".99em",
+          fontWeight: 500,
+          color: "var(--primary)"
+        }}>
+          {completed} of {total} steps complete
+        </div>
+      </div>
+    </div>
   );
 }
 
