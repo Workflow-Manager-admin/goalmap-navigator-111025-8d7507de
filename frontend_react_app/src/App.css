@@ -171,10 +171,57 @@ body, html {
 
 .roadmap-section {
   flex: 1;
-  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 0 32px 0;
   background: var(--bg-light);
   min-height: 0;
   overflow-y: auto;
+}
+
+/* Ensure children of roadmap-section are centered and set max-width for layout */
+.roadmap-section > * {
+  width: 100%;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  box-sizing: border-box;
+}
+
+/* Override progress tracker/milestone bar for center+responsive */
+@media (max-width: 1000px) {
+  .roadmap-section > * {
+    max-width: 100vw;
+  }
+}
+
+@media (max-width: 700px) {
+  .roadmap-section {
+    padding: 16px 0;
+  }
+  .roadmap-section > * {
+    max-width: 99vw;
+    padding-left: 2vw;
+    padding-right: 2vw;
+  }
+}
+
+/* Responsive tweak for mobile modals: always centered, nearly fullscreen */
+@media (max-width: 480px) {
+  .modal-content {
+    max-width: 98vw !important;
+    min-width: 0 !important;
+    padding: 18px 3vw !important;
+  }
+}
+
+/* Responsive tweaks for MyGoalRoadmap: no padding on mobile */
+@media (max-width: 650px) {
+  .my-goal-roadmap {
+    padding: 12px 2vw 14px 2vw !important;
+    max-width: 100vw !important;
+  }
 }
 
 /* --- Interactive milestone roadmap bar styles --- */

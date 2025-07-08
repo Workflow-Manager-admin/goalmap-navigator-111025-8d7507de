@@ -164,16 +164,32 @@ function App() {
       <main className="dashboard-main">
         <Header />
         {/* My Goal Roadmap -- add interactive milestone roadmap at the top */}
-        <section className="roadmap-section" style={{paddingTop: 0}}>
+        <section className="roadmap-section" style={{ paddingTop: 0 }}>
           {/* Progress tracker above roadmap bar */}
-          <div style={{ margin: "28px auto 6px auto", maxWidth: 870, width: "100%" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              margin: "28px 0 6px 0",
+              width: "100%",
+              maxWidth: 870,
+              boxSizing: "border-box",
+            }}
+          >
             <ProgressTracker milestones={milestones} />
           </div>
-          <div style={{
-            margin: "0px auto 20px auto",
-            maxWidth: 870,
-            width: "100%",
-          }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              margin: "0px 0 20px 0",
+              width: "100%",
+              maxWidth: 870,
+              boxSizing: "border-box",
+            }}
+          >
             <MilestoneRoadmapBar
               milestones={milestones}
               hoveredMilestone={hoveredMilestone}
@@ -183,12 +199,16 @@ function App() {
               onMilestoneClick={(m) => setMilestoneModal(m)}
             />
           </div>
-          <MyGoalRoadmap goals={goals} />
-          <RoadmapGoals
-            goals={goals}
-            onEdit={openEditModal}
-            onDelete={handleDelete}
-          />
+          <div style={{ width: "100%", maxWidth: 900 }}>
+            <MyGoalRoadmap goals={goals} />
+          </div>
+          <div style={{ width: "100%", maxWidth: 900 }}>
+            <RoadmapGoals
+              goals={goals}
+              onEdit={openEditModal}
+              onDelete={handleDelete}
+            />
+          </div>
         </section>
       </main>
       {milestoneModal && (
