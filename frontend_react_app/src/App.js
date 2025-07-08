@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
-
+import MilestoneModal from "./MilestoneModal";
+import GoalModal from "./GoalModal";
 
 /** Milestone icons for demo (SVG inline, modern/minimal) */
 const milestoneIcons = {
@@ -32,7 +33,9 @@ const milestoneIcons = {
   ),
 };
 
-/** Milestone data for the progress bar demo */
+/** Milestone data for the progress bar demo.
+  * Now all statuses = "Completed", "In Progress", or "Pending"
+  */
 const demoMilestones = [
   {
     id: 1001,
@@ -53,11 +56,9 @@ const demoMilestones = [
     iconKey: "internship",
     title: "Get Internship",
     description: "Apply and interview for tech internships.",
-    status: "Planned",
+    status: "Pending",
   },
 ];
-
-import MilestoneModal from "./MilestoneModal";
 
 /**
  * The main application, includes dashboard and roadmap/milestone modal logic.
@@ -233,8 +234,51 @@ function MilestoneRoadmapBar({
   setHoveredMilestone,
   selectedMilestone,
   setSelectedMilestone,
-  onMilestoneClick, // New: callback for modal open
+  onMilestoneClick,
 }) {
+  // Helper: get color by status (lowercase)
+  function getMilestoneColors(status) {
+    // Returns: {bg, border, iconColor, textColor}
+    switch ((status || "").toLowerCase()) {
+      case "completed":
+        return {
+          bg: "#e3fcec",
+          border: "#09b36a",
+          iconBg: "#09b36a",
+          circleBg: "#09b36a",
+          text: "#09b36a",
+          gradient: "linear-gradient(135deg,#22bb7f 65%,#a3f7c4 100%)",
+        };
+      case "in progress":
+        return {
+          bg: "#fff5e0",
+          border: "#ffc632",
+          iconBg: "#ffc632",
+          circleBg: "#ffc632",
+          text: "#FFB400",
+          gradient: "linear-gradient(135deg,#ffe073 55%,#ffc632 100%)",
+        };
+      case "pending":
+        return {
+          bg: "#ececf3",
+          border: "#b8bec5",
+          iconBg: "#b8bec5",
+          circleBg: "#b8bec5",
+          text: "#888b94",
+          gradient: "linear-gradient(135deg,#c4c8d5 70%,#e3e4ef 100%)",
+        };
+      default:
+        return {
+          bg: "#ececf3",
+          border: "#b8bec5",
+          iconBg: "#b8bec5",
+          circleBg: "#b8bec5",
+          text: "#888b94",
+          gradient: "linear-gradient(135deg,#c4c8d5 70%,#e3e4ef 100%)",
+        };
+    }
+  }
+
   return (
     <div
       className="milestone-roadmap-bar"
@@ -283,14 +327,17 @@ function MilestoneRoadmapBar({
               right: 0,
               height: 5,
               borderRadius: 4,
-              background:
-                "linear-gradient(90deg,var(--primary) 42%,var(--accent) 90%)",
-              opacity: 0.17,
+              background: "var(--border)",
+              opacity: 0.18,
               zIndex: 0,
             }}
           />
           {milestones.map((m, idx) => {
-            const isCompleted = m.status && m.status.toLowerCase() === "completed";
+            const statusLc = (m.status || "").toLowerCase();
+            const isCompleted = statusLc === "completed";
+            const isInProgress = statusLc === "in progress";
+            const isPending = statusLc === "pending";
+            const colors = getMilestoneColors(m.status);
             const isCurrent =
               (hoveredMilestone && hoveredMilestone.id === m.id) ||
               (selectedMilestone && selectedMilestone.id === m.id);
@@ -308,34 +355,29 @@ function MilestoneRoadmapBar({
                   minWidth: 0,
                   zIndex: 2,
                   cursor: "pointer",
-                  outline: isCurrent ? "2.1px solid #1976D2" : "none",
+                  outline: isCurrent ? `2.1px solid var(--primary)` : "none",
                   background: "none",
                 }}
                 onMouseEnter={() => setHoveredMilestone(m)}
                 onMouseLeave={() => setHoveredMilestone(null)}
                 onFocus={() => setHoveredMilestone(m)}
                 onBlur={() => setHoveredMilestone(null)}
-                // For popover only: inline quick info. For modal: open modal on click.
                 onClick={(e) => {
-                  // Prefer modal on click, leave popover for hover/focus
                   if (onMilestoneClick) onMilestoneClick(m);
                 }}
                 aria-label={m.title}
                 title={m.title}
               >
+                {/* Milestone colored circle */}
                 <div
                   style={{
                     width: 48,
                     height: 48,
                     borderRadius: "50%",
-                    background: isCompleted
-                      ? "linear-gradient(135deg,var(--primary) 65%,var(--accent) 100%)"
-                      : "#f8fafb",
+                    background: colors.bg,
                     border: isCurrent
-                      ? "2.7px solid #1976D2"
-                      : isCompleted
-                      ? "2px solid var(--accent)"
-                      : "1.5px solid var(--border)",
+                      ? "2.7px solid var(--primary)"
+                      : `2px solid ${colors.border}`,
                     boxShadow: isCurrent
                       ? "var(--shadow-md)"
                       : "0 1.5px 4px 0 rgba(21,28,55,.11)",
@@ -343,7 +385,7 @@ function MilestoneRoadmapBar({
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 3,
-                    transition: "border .18s, box-shadow .23s",
+                    transition: "border .18s, box-shadow .23s, background .23s",
                     position: "relative",
                   }}
                 >
@@ -381,9 +423,7 @@ function MilestoneRoadmapBar({
                     fontWeight: 600,
                     color: isCurrent
                       ? "var(--primary)"
-                      : isCompleted
-                      ? "#222"
-                      : "var(--text-secondary)",
+                      : colors.text,
                     marginTop: 2,
                     textAlign: "center",
                     maxWidth: 101,
@@ -395,7 +435,7 @@ function MilestoneRoadmapBar({
                 >
                   {m.title}
                 </div>
-                {/* Show inline popover for accessibility/quick view, but modal opens on click */}
+                {/* Inline milestone popover */}
                 {isCurrent && (
                   <div
                     className="milestone-popover"
@@ -428,15 +468,15 @@ function MilestoneRoadmapBar({
                       marginTop: 9,
                       display: "flex",
                       justifyContent: "center",
-                      gap: 7
+                      gap: 7,
                     }}>
                       <span className="status-badge"
                         style={{
-                          background: isCompleted
-                            ? "#e3fcec"
-                            : m.status === "Planned" ? "#eaeffe" : "#fff5e0",
-                          color: isCompleted ? "#09b36a" : m.status === "Planned" ? "var(--primary)" : "var(--accent)",
-                          fontSize: "0.9em"
+                          background: colors.bg,
+                          color: colors.text,
+                          border: `1px solid ${colors.border}`,
+                          fontSize: "0.93em",
+                          fontWeight: 700,
                         }}>
                         {m.status}
                       </span>
@@ -456,9 +496,11 @@ function MilestoneRoadmapBar({
                       borderRadius: 4,
                       background:
                         isCompleted
-                          ? "linear-gradient(90deg,var(--primary) 60%,var(--accent) 100%)"
-                          : "var(--border)",
-                      opacity: isCompleted ? .82 : .33,
+                          ? "#e3fcec"
+                          : isInProgress
+                          ? "#fff5e0"
+                          : "#ececf3",
+                      opacity: 1,
                       zIndex: 1,
                     }}
                   />

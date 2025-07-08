@@ -345,10 +345,23 @@ body, html {
   font-weight: 600;
   background: #ececf3;
   color: #353651;
+  border: 1px solid #b8bec5;
 }
-.status-planned { background: #eaeffe; color: var(--primary);}
-.status-inprogress { background: #fff5e0; color: var(--accent); }
-.status-completed { background: #e3fcec; color: #09b36a;}
+.status-planned, .status-pending {
+  background: #ececf3;
+  color: #888b94;
+  border: 1px solid #b8bec5;
+}
+.status-inprogress, .status-in-progress {
+  background: #fff5e0;
+  color: #FFB400;
+  border: 1px solid #ffc632;
+}
+.status-completed {
+  background: #e3fcec;
+  color: #09b36a;
+  border: 1px solid #09b36a;
+}
 
 .goal-children {
   margin-left: 24px;
