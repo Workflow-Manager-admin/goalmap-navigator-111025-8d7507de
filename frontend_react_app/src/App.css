@@ -43,6 +43,16 @@ body, html {
   .sidebar-title { display: none; }
   .sidebar-link span { display: none; }
 }
+
+/* Responsive: show completion label below progress bar on narrow screens */
+@media (max-width: 540px) {
+  .progress-tracker-root span[style*="min-width: 90"] {
+    display: none !important;
+  }
+  .progress-tracker-completion-mobile {
+    display: block !important;
+  }
+}
 .sidebar-header {
   display: flex;
   align-items: center;

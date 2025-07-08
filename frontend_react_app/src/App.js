@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import "./App.css";
 import MilestoneModal from "./MilestoneModal";
 import GoalModal from "./GoalModal";
+import ProgressTracker from "./ProgressTracker";
 
 /** Milestone icons for demo (SVG inline, modern/minimal) */
 const milestoneIcons = {
@@ -153,8 +154,12 @@ function App() {
         <Header />
         {/* My Goal Roadmap -- add interactive milestone roadmap at the top */}
         <section className="roadmap-section" style={{paddingTop: 0}}>
+          {/* Add animated progress tracker above roadmap bar */}
+          <div style={{ margin: "28px auto 6px auto", maxWidth: 870, width: "100%" }}>
+            <ProgressTracker milestones={demoMilestones} />
+          </div>
           <div style={{
-            margin: "26px auto 20px auto",
+            margin: "0px auto 20px auto",
             maxWidth: 870,
             width: "100%",
           }}>
