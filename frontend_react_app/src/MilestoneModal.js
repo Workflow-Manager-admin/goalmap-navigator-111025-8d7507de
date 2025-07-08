@@ -3,16 +3,25 @@ import React from "react";
 /**
  * Minimal, modern modal for displaying milestone details.
  * PUBLIC_INTERFACE
+ * Now includes a "Mark as Complete" button for instant roadmap update.
  */
-function MilestoneModal({ milestone, onClose }) {
+function MilestoneModal({ milestone, onClose, onMarkComplete }) {
   if (!milestone) return null;
 
   // Demo: we could add more properties in the future (e.g. target date)
-  // Here we fake a target date based on status for demo.
   let targetDate = null;
   if (milestone.status === "Completed") targetDate = "2023-05-10";
   else if (milestone.status === "In Progress") targetDate = "2023-12-15";
   else if (milestone.status === "Planned") targetDate = "2024-06-30";
+
+  // Handler for marking as complete, prevents double-completion
+  const handleMarkAsComplete = () => {
+    if (milestone.status !== "Completed" && typeof onMarkComplete === "function") {
+      onMarkComplete(milestone.id);
+      // Optionally, close modal after marking complete: onClose();
+      // Or keep open, since parent will rerender new status
+    }
+  };
 
   return (
     <div
@@ -54,7 +63,19 @@ function MilestoneModal({ milestone, onClose }) {
             {milestone.status}
           </span>
         </div>
-        <div className="modal-actions" style={{marginTop: 26, justifyContent: "flex-end"}}>
+        <div className="modal-actions" style={{marginTop: 26, justifyContent: "flex-end", gap: 10}}>
+          {milestone.status !== "Completed" && (
+            <button
+              type="button"
+              className="btn-accent"
+              style={{minWidth: 110}}
+              onClick={handleMarkAsComplete}
+              autoFocus
+              tabIndex={0}
+            >
+              Mark as Complete
+            </button>
+          )}
           <button type="button" className="btn-secondary" onClick={onClose}>
             Close
           </button>

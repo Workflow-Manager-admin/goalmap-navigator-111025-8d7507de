@@ -34,46 +34,57 @@ const milestoneIcons = {
   ),
 };
 
-/** Milestone data for the progress bar demo.
-  * Now all statuses = "Completed", "In Progress", or "Pending"
-  */
-const demoMilestones = [
-  {
-    id: 1001,
-    iconKey: "javascript",
-    title: "Learn JavaScript",
-    description: "Master JavaScript fundamentals.",
-    status: "Completed",
-  },
-  {
-    id: 1002,
-    iconKey: "project",
-    title: "Build My First Project",
-    description: "Create and launch your first web project.",
-    status: "In Progress",
-  },
-  {
-    id: 1003,
-    iconKey: "internship",
-    title: "Get Internship",
-    description: "Apply and interview for tech internships.",
-    status: "Pending",
-  },
-];
-
 /**
  * The main application, includes dashboard and roadmap/milestone modal logic.
  * PUBLIC_INTERFACE
  */
 function App() {
-  // Demo only: the roadmap milestones are displayed at top
+  // Milestones for roadmap are now stored in root state
+  const [milestones, setMilestones] = useState([
+    {
+      id: 1001,
+      iconKey: "javascript",
+      title: "Learn JavaScript",
+      description: "Master JavaScript fundamentals.",
+      status: "Completed",
+    },
+    {
+      id: 1002,
+      iconKey: "project",
+      title: "Build My First Project",
+      description: "Create and launch your first web project.",
+      status: "In Progress",
+    },
+    {
+      id: 1003,
+      iconKey: "internship",
+      title: "Get Internship",
+      description: "Apply and interview for tech internships.",
+      status: "Pending",
+    },
+  ]);
   const [hoveredMilestone, setHoveredMilestone] = useState(null);
-  const [selectedMilestone, setSelectedMilestone] = useState(null); // Used for inline popover
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
 
-  // New: Modal state for milestone (independent of popover)
+  // Modal state for milestone (independent of popover)
   const [milestoneModal, setMilestoneModal] = useState(null);
 
-  // Existing goal state (unchanged)
+  // PUBLIC_INTERFACE
+  const handleMarkMilestoneComplete = (milestoneId) => {
+    setMilestones((prev) =>
+      prev.map((m) =>
+        m.id === milestoneId
+          ? { ...m, status: "Completed" }
+          : m
+      )
+    );
+    // If this is the open modal, also update modal to show completed instantly
+    if (milestoneModal && milestoneModal.id === milestoneId) {
+      setMilestoneModal((modal) => ({ ...modal, status: "Completed" }));
+    }
+  };
+
+  // Goal roadmap state is unchanged (for MyGoalRoadmap)
   const [modal, setModal] = useState(null);
   const [editingGoal, setEditingGoal] = useState(null);
   const [goals, setGoals] = useState([
@@ -154,9 +165,9 @@ function App() {
         <Header />
         {/* My Goal Roadmap -- add interactive milestone roadmap at the top */}
         <section className="roadmap-section" style={{paddingTop: 0}}>
-          {/* Add animated progress tracker above roadmap bar */}
+          {/* Progress tracker above roadmap bar */}
           <div style={{ margin: "28px auto 6px auto", maxWidth: 870, width: "100%" }}>
-            <ProgressTracker milestones={demoMilestones} />
+            <ProgressTracker milestones={milestones} />
           </div>
           <div style={{
             margin: "0px auto 20px auto",
@@ -164,12 +175,12 @@ function App() {
             width: "100%",
           }}>
             <MilestoneRoadmapBar
-              milestones={demoMilestones}
+              milestones={milestones}
               hoveredMilestone={hoveredMilestone}
               setHoveredMilestone={setHoveredMilestone}
               selectedMilestone={selectedMilestone}
               setSelectedMilestone={setSelectedMilestone}
-              onMilestoneClick={setMilestoneModal}
+              onMilestoneClick={(m) => setMilestoneModal(m)}
             />
           </div>
           <MyGoalRoadmap goals={goals} />
@@ -182,8 +193,11 @@ function App() {
       </main>
       {milestoneModal && (
         <MilestoneModal
-          milestone={milestoneModal}
+          milestone={
+            milestones.find((m) => m.id === milestoneModal.id) || milestoneModal
+          }
           onClose={() => setMilestoneModal(null)}
+          onMarkComplete={handleMarkMilestoneComplete}
         />
       )}
       {modal && (
@@ -243,7 +257,6 @@ function MilestoneRoadmapBar({
 }) {
   // Helper: get color by status (lowercase)
   function getMilestoneColors(status) {
-    // Returns: {bg, border, iconColor, textColor}
     switch ((status || "").toLowerCase()) {
       case "completed":
         return {
@@ -524,7 +537,6 @@ function MilestoneRoadmapBar({
  */
 function MyGoalRoadmap({ goals }) {
   // Calculate total completions and steps
-  // (Flatten all root goals and children into one level for linear progress)
   const allGoals = goals.flatMap(g => [g, ...(g.children || [])]);
   const total = allGoals.length;
   const completed = allGoals.filter(g => g.status && g.status.toLowerCase() === "completed").length;
@@ -566,7 +578,7 @@ function MyGoalRoadmap({ goals }) {
   );
 }
 
-// Modern, minimal progress bar of steps (existing)
+// Minimal visual linear roadmap progress bar (existing)
 function RoadmapPathBar({ total, completed, percent, allGoals }) {
   // Show up to 8 steps, use dots for more
   const showGoals = total <= 8 ? allGoals : allGoals.slice(0, 7);
@@ -686,7 +698,7 @@ function Header() {
   );
 }
 
-// Roadmap goals visualization (simple tree)
+// Roadmap goals visualization (tree)
 function RoadmapGoals({ goals, onEdit, onDelete }) {
   return (
     <div className="roadmap-tree">
