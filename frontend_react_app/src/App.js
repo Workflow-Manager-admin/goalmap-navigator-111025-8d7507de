@@ -115,21 +115,24 @@ const DEMO_MILESTONES = [
     title: "Learn JavaScript",
     description: "Get comfortable with JS fundamentals.",
     status: "Completed",
-    icon: "javascript"
+    icon: "javascript",
+    term: "short"
   },
   {
     id: 2,
     title: "Build Personal Project",
     description: "Create a portfolio project using JS.",
     status: "In Progress",
-    icon: "project"
+    icon: "project",
+    term: "medium"
   },
   {
     id: 3,
     title: "Apply for Internships",
     description: "Prepare resume. Start applications.",
     status: "Planned",
-    icon: "internship"
+    icon: "internship",
+    term: "long"
   }
 ];
 
@@ -239,6 +242,54 @@ function MilestoneRoadmapBar({ milestones, onMilestoneClick }) {
   );
 }
 
+/** 
+ * TimelineFilter segmented control UI for filtering milestones by term.
+ * PUBLIC_INTERFACE
+ * Props:
+ * - value: current selected term ("short", "medium", "long", or "all")
+ * - onChange: callback to update filter value
+ */
+function TimelineFilter({ value, onChange }) {
+  const terms = [
+    { label: "Short-term", value: "short" },
+    { label: "Medium-term", value: "medium" },
+    { label: "Long-term", value: "long" },
+    { label: "All", value: "all" }
+  ];
+  return (
+    <div style={{
+      display: "flex", gap: 3, alignItems: "center", background: "#f3f5fa", padding: "5px 14px",
+      borderRadius: 13, margin: "0 0 10px 0", border: "1px solid #e0e5ee", boxShadow: "var(--shadow-sm)"
+    }}>
+      {terms.map(t => (
+        <button
+          key={t.value}
+          type="button"
+          className="btn-secondary"
+          onClick={() => onChange(t.value)}
+          style={{
+            background: value === t.value ? "var(--primary)" : "transparent",
+            color: value === t.value ? "#fff" : "var(--secondary)",
+            border: value === t.value ? "1.5px solid var(--primary)" : "1px solid transparent",
+            fontWeight: value === t.value ? 700 : 500,
+            borderRadius: 9,
+            fontSize: 16,
+            padding: "7px 19px",
+            transition: "all 0.12s",
+            cursor: value === t.value ? "default" : "pointer",
+            outline: value === t.value ? "none" : undefined,
+            boxShadow: value === t.value ? "0 2px 10px #1976d22e" : undefined
+          }}
+          disabled={value === t.value}
+          aria-pressed={value === t.value}
+        >
+          {t.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** Main App component */
 function App() {
   // Existing demo state: milestone array, modal state, etc.
@@ -247,16 +298,20 @@ function App() {
   const [selectedMilestone, setSelectedMilestone] = useState(null);
   // AddMilestone modal UI state
   const [showAddModal, setShowAddModal] = useState(false);
+  // Timeline filter state
+  const [timelineFilter, setTimelineFilter] = useState("all");
 
   // Provide a clean "Add Milestone" handler
   function handleAddMilestone(data) {
     // Default status is "Pending", icon is default
+    // Default term to "short" if not provided (optional: could add selection UI in modal later)
     const customMilestone = {
       id: Date.now() + Math.floor(Math.random() * 99999),
       title: data.title,
       description: data.description || "",
       status: "Pending",
-      icon: "default"
+      icon: "default",
+      term: "short"
     };
     setMilestones((prev) => [...prev, customMilestone]);
     setShowAddModal(false);
@@ -275,6 +330,14 @@ function App() {
     );
     setShowMilestoneModal(false);
   }
+
+  // Filtering function for milestones
+  const filteredMilestones = React.useMemo(() =>
+    timelineFilter === "all"
+      ? milestones
+      : milestones.filter((m) => (m.term || "short") === timelineFilter),
+    [milestones, timelineFilter]
+  );
 
   // Main UI: dashboard style, roadmap section, progress, add-milestone button, modals.
   return (
@@ -297,7 +360,17 @@ function App() {
           <h1 className="dashboard-title" style={{margin:0}}>My Goal Roadmap</h1>
         </header>
         <section className="roadmap-section" style={{justifyContent: "flex-start"}}>
-          <div style={{display:"flex", alignItems:"center", maxWidth:900, width:"100%", margin:"0 auto 16px auto", justifyContent:"flex-end"}}>
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            maxWidth: 900,
+            width: "100%",
+            margin: "0 auto 16px auto",
+            justifyContent: "space-between",
+            flexWrap: "wrap",
+            gap: 10
+          }}>
+            <TimelineFilter value={timelineFilter} onChange={setTimelineFilter} />
             <button
               type="button"
               className="btn-accent"
@@ -312,9 +385,9 @@ function App() {
             </button>
           </div>
           {/* Progress bar */}
-          <ProgressTracker milestones={milestones} />
+          <ProgressTracker milestones={filteredMilestones} />
           {/* Roadmap horizontal bar */}
-          <MilestoneRoadmapBar milestones={milestones} onMilestoneClick={handleMilestoneClick} />
+          <MilestoneRoadmapBar milestones={filteredMilestones} onMilestoneClick={handleMilestoneClick} />
         </section>
         {/* Milestone detail modal */}
         {showMilestoneModal && selectedMilestone && (
