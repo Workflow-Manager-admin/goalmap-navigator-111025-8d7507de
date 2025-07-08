@@ -4,6 +4,80 @@ import MilestoneModal from "./MilestoneModal";
 import GoalModal from "./GoalModal";
 import ProgressTracker from "./ProgressTracker";
 
+/** Simple AddMilestoneModal for new milestone input (title + description)
+ * PUBLIC_INTERFACE
+ */
+function AddMilestoneModal({ onAdd, onClose }) {
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [error, setError] = useState("");
+  const titleRef = useRef(null);
+
+  // Focus input on open
+  useEffect(() => {
+    if (titleRef.current) titleRef.current.focus();
+  }, []);
+
+  // Handle Add
+  const handleAdd = (e) => {
+    e.preventDefault();
+    if (!title.trim()) {
+      setError("Title is required.");
+      return;
+    }
+    onAdd({
+      title: title.trim(),
+      description: desc.trim(),
+    });
+    setTitle("");
+    setDesc("");
+    setError("");
+  };
+
+  return (
+    <div className="modal-overlay" aria-modal="true" role="dialog" tabIndex={-1} style={{zIndex: 3500}}>
+      <div className="modal-content" style={{ maxWidth: 410 }} onClick={e => e.stopPropagation()}>
+        <h2 style={{marginTop:0, marginBottom: 18, color: "var(--primary)"}}>Add New Milestone</h2>
+        <form onSubmit={handleAdd} className="modal-form" aria-label="Add milestone form">
+          <label htmlFor="milestone-title">Title</label>
+          <input
+            id="milestone-title"
+            className="input"
+            type="text"
+            maxLength={48}
+            ref={titleRef}
+            autoFocus
+            value={title}
+            spellCheck={true}
+            autoCapitalize="sentences"
+            autoComplete="off"
+            required
+            placeholder="Milestone title"
+            onChange={e => { setError(""); setTitle(e.target.value); }}
+          />
+          <label htmlFor="milestone-desc">Description</label>
+          <textarea
+            id="milestone-desc"
+            className="input"
+            maxLength={160}
+            value={desc}
+            placeholder="Milestone description (optional)"
+            onChange={e => setDesc(e.target.value)}
+            spellCheck={true}
+            style={{minHeight:54}}
+          />
+          {error && (<div style={{ color: "#d94b48", marginTop: 6, fontWeight: 500 }}>{error}</div>)}
+          <div className="modal-actions" style={{marginTop: 26, justifyContent: "flex-end", gap: 11}}>
+            <button type="button" className="btn-secondary" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn-accent" style={{minWidth:97, fontWeight:600}}>
+              Add
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 /** Milestone icons for demo (SVG inline, modern/minimal) */
 const milestoneIcons = {
   javascript: (
@@ -34,8 +108,232 @@ const milestoneIcons = {
   ),
 };
 
-/* ... rest of App.js, including MilestoneRoadmapBar and App function definitions (unchanged from previous write) ... */
+/* --- Minimal DEMO milestones and helpers for illustration --- */
+const DEMO_MILESTONES = [
+  {
+    id: 1,
+    title: "Learn JavaScript",
+    description: "Get comfortable with JS fundamentals.",
+    status: "Completed",
+    icon: "javascript"
+  },
+  {
+    id: 2,
+    title: "Build Personal Project",
+    description: "Create a portfolio project using JS.",
+    status: "In Progress",
+    icon: "project"
+  },
+  {
+    id: 3,
+    title: "Apply for Internships",
+    description: "Prepare resume. Start applications.",
+    status: "Planned",
+    icon: "internship"
+  }
+];
 
-// (PASTED ALL PREVIOUS CODE, everything in correct order, nothing out of scope.)
+/** Helper to animate minimal appearance for new/last milestone (using the same fade/slide as CSS class .milestone-dot). */
+function MilestoneRoadmapBar({ milestones, onMilestoneClick }) {
+  // Slightly improved roadmap bar: minimal dot/line/label with animation, click interactivity.
+  // Responsive: shrinks for < 700px screens, font-size adjustments handled by CSS.
+  return (
+    <div
+      className="milestone-roadmap-bar"
+      style={{
+        display: "flex",
+        alignItems: "flex-end",
+        gap: 0,
+        justifyContent: "center",
+        margin: "28px 0 30px 0",
+        width: "100%",
+        maxWidth: 790,
+        minHeight: 80
+      }}
+    >
+      {milestones.length === 0 && (
+        <div className="empty-state" style={{minHeight:100}}>No milestones yet!</div>
+      )}
+      {milestones.map((m, idx) => (
+        <React.Fragment key={m.id}>
+          <div
+            className="milestone-dot"
+            tabIndex={0}
+            title={m.title}
+            role="button"
+            aria-label={`View details of milestone ${m.title}`}
+            onClick={() => onMilestoneClick(m)}
+            onKeyDown={e => { if(e.key==="Enter")onMilestoneClick(m);}}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              margin: "0 18px",
+              cursor: "pointer",
+              outline: "none"
+            }}
+          >
+            <div
+              style={{
+                width: 39,
+                height: 39,
+                borderRadius: "50%",
+                background: m.status==="Completed" ? "#e3fcec" : m.status==="In Progress" ? "#fff9ed" : "#ececf3",
+                border: m.status==="Completed"
+                  ? "2.2px solid #09b36a"
+                  : m.status==="In Progress"
+                  ? "2.3px solid #FFC632"
+                  : "2px solid #b8bec5",
+                boxShadow: "0 1.5px 8px 0 rgba(23,43,99,.09)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                marginBottom: "7px",
+                transition: "border 0.2s, box-shadow .16s",
+                zIndex: 2,
+                position: "relative"
+              }}
+            >
+              {milestoneIcons[m.icon] || milestoneIcons.default}
+            </div>
+            <div
+              className={
+                "milestone-title" +
+                (m.status === "In Progress" || m.status === "InProgress" ? " milestone-title-active" : "")
+              }
+              style={{
+                fontSize: 14,
+                textAlign: "center",
+                color: "#353651",
+                fontWeight: 600,
+                maxWidth: 98,
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis"
+              }}
+            >
+              {m.title}
+            </div>
+          </div>
+          {idx !== milestones.length - 1 && (
+            <div
+              className="roadmap-path-bar"
+              style={{
+                flex: "0 0 35px",
+                height: 3.7,
+                margin: "0 0.5vw",
+                minWidth: 20,
+                background:
+                  milestones[idx].status === "Completed"
+                    ? "linear-gradient(90deg,#09b36a 40%,#FFC632 100%)"
+                    : "#e3e5ec",
+                borderRadius: 7,
+                alignSelf: "center",
+                marginBottom: 12
+              }}
+            />
+          )}
+        </React.Fragment>
+      ))}
+    </div>
+  );
+}
+
+/** Main App component */
+function App() {
+  // Existing demo state: milestone array, modal state, etc.
+  const [milestones, setMilestones] = useState(DEMO_MILESTONES);
+  const [showMilestoneModal, setShowMilestoneModal] = useState(false);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+  // AddMilestone modal UI state
+  const [showAddModal, setShowAddModal] = useState(false);
+
+  // Provide a clean "Add Milestone" handler
+  function handleAddMilestone(data) {
+    // Default status is "Pending", icon is default
+    const customMilestone = {
+      id: Date.now() + Math.floor(Math.random() * 99999),
+      title: data.title,
+      description: data.description || "",
+      status: "Pending",
+      icon: "default"
+    };
+    setMilestones((prev) => [...prev, customMilestone]);
+    setShowAddModal(false);
+  }
+
+  // When a milestone is clicked, open MilestoneModal
+  function handleMilestoneClick(milestone) {
+    setSelectedMilestone(milestone);
+    setShowMilestoneModal(true);
+  }
+
+  // Mark milestone as completed (demo)
+  function handleMarkComplete(milestoneId) {
+    setMilestones(ms =>
+      ms.map(m => m.id === milestoneId ? { ...m, status: "Completed" } : m)
+    );
+    setShowMilestoneModal(false);
+  }
+
+  // Main UI: dashboard style, roadmap section, progress, add-milestone button, modals.
+  return (
+    <div className="dashboard-root">
+      <aside className="dashboard-sidebar" aria-label="Sidebar Navigation">
+        <div className="sidebar-header">
+          <div className="logo-circle">G</div>
+          <div className="sidebar-title">GoalMap</div>
+        </div>
+        <nav className="sidebar-nav" aria-label="Primary">
+          <button className="sidebar-link active" disabled>
+            <span role="img" aria-label="roadmap" style={{marginRight:7}}>🗺️</span>
+            <span>Roadmap</span>
+          </button>
+        </nav>
+        <div className="sidebar-footer"></div>
+      </aside>
+      <main className="dashboard-main">
+        <header className="dashboard-header">
+          <h1 className="dashboard-title" style={{margin:0}}>My Goal Roadmap</h1>
+        </header>
+        <section className="roadmap-section" style={{justifyContent: "flex-start"}}>
+          <div style={{display:"flex", alignItems:"center", maxWidth:900, width:"100%", margin:"0 auto 16px auto", justifyContent:"flex-end"}}>
+            <button
+              type="button"
+              className="btn-accent"
+              style={{
+                fontSize:"1.06em", fontWeight:600,
+                display:"inline-flex",alignItems:"center",gap:8,padding:"11px 19px",borderRadius:13
+              }}
+              aria-label="Add a new milestone"
+              onClick={() => setShowAddModal(true)}
+            >
+              <span style={{fontSize:"1.21em",lineHeight:"0",marginRight:2,fontWeight:700}}>+</span> Add Milestone
+            </button>
+          </div>
+          {/* Progress bar */}
+          <ProgressTracker milestones={milestones} />
+          {/* Roadmap horizontal bar */}
+          <MilestoneRoadmapBar milestones={milestones} onMilestoneClick={handleMilestoneClick} />
+        </section>
+        {/* Milestone detail modal */}
+        {showMilestoneModal && selectedMilestone && (
+          <MilestoneModal
+            milestone={selectedMilestone}
+            onClose={() => setShowMilestoneModal(false)}
+            onMarkComplete={handleMarkComplete}
+          />
+        )}
+        {/* Add milestone modal */}
+        {showAddModal && (
+          <AddMilestoneModal
+            onAdd={handleAddMilestone}
+            onClose={() => setShowAddModal(false)}
+          />
+        )}
+      </main>
+    </div>
+  );
+}
 
 export default App;
