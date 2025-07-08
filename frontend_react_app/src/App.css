@@ -167,6 +167,53 @@ body, html {
   overflow-y: auto;
 }
 
+/* --- Interactive milestone roadmap bar styles --- */
+.milestone-roadmap-bar {
+  /* All major styling inline for DX, just a few utility classes here */
+}
+.milestone-title {
+  user-select: none;
+  pointer-events: none;
+}
+.milestone-dot {
+  transition: outline 0.15s, box-shadow 0.20s;
+}
+.milestone-dot:focus,
+.milestone-dot:hover {
+  outline: 2.1px solid var(--primary);
+}
+.milestone-title-active {
+  color: var(--primary) !important;
+  text-shadow: 0 2px 8px rgba(25, 118, 210, 0.16);
+}
+.milestone-popover {
+  animation: popoverFadeIn .15s;
+}
+@keyframes popoverFadeIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-13px);}
+  to { opacity: 1; transform: translateX(-50%) translateY(0);}
+}
+
+/* --- Responsive for milestone roadmap bar --- */
+@media (max-width: 700px) {
+  .milestone-roadmap-bar {
+    padding: 10px 2vw 12px 2vw !important;
+  }
+  .milestone-title, .milestone-title-active {
+    font-size: 12px !important;
+    max-width: 74px !important;
+  }
+  .milestone-dot>div:first-child { width: 33px !important; height: 33px !important;}
+}
+@media (max-width: 430px) {
+  .milestone-popover {
+    min-width: 0 !important;
+    width: 96vw !important;
+    left: 50% !important;
+    padding: 10px 6vw 10px 6vw !important;
+  }
+}
+
 .my-goal-roadmap {
   /* Sizing and shadow set inline for maxWidth/container, these are for fallback */
   margin-bottom: 40px;

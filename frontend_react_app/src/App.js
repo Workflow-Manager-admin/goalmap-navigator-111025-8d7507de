@@ -1,12 +1,70 @@
 import React, { useState } from "react";
 import "./App.css";
 
+/** Milestone icons for demo (SVG inline, modern/minimal) */
+const milestoneIcons = {
+  javascript: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{display: "block"}} xmlns="http://www.w3.org/2000/svg">
+      <rect width="20" height="20" rx="6" fill="#F7DF1E"/>
+      <text x="10" y="15.5" fill="#222" fontSize="10" fontWeight="bold" textAnchor="middle" fontFamily="monospace">JS</text>
+    </svg>
+  ),
+  project: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{display: "block"}} xmlns="http://www.w3.org/2000/svg">
+      <rect width="20" height="20" rx="6" fill="#1976D2"/>
+      <path d="M14.7 16H5.3c-.63 0-1.14-.5-1.14-1.13V6.89c0-.63.51-1.13 1.14-1.13h1.19l.47-1.04A1.13 1.13 0 0 1 7.95 4.5h4.1c.45 0 .86.27 1.06.7l.48 1.06h1.19c.63 0 1.14.5 1.14 1.13v8.02c0 .63-.51 1.13-1.14 1.13zM14 7.4V6.67l-.1-.21-.47-1.03h-4.85l-.47 1.03-.09.21V7.4H14zm-7.5.69v6.65c0 .33.27.6.61.6h9.78a.6.6 0 0 0 .61-.6V8.09a.6.6 0 0 0-.61-.6H7.11a.6.6 0 0 0-.61.6z" fill="#fff"/>
+    </svg>
+  ),
+  internship: (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style={{display: "block"}} xmlns="http://www.w3.org/2000/svg">
+      <rect width="20" height="20" rx="6" fill="#FF6F00"/>
+      <path d="M10 5c-2.76 0-5 1.12-5 2.5v.88c0 .8.49 1.45 1.4 2.08C7.05 11.17 8.37 11.88 10 11.88s2.95-.71 3.6-1.42c.91-.63 1.4-1.28 1.4-2.08V7.5C15 6.12 12.76 5 10 5zm0 6.13c-1.06 0-2.48-.44-3.19-1.2C6.99 10.93 8.35 12 10 12c1.64 0 3-1.07 3.19-2.07-.71.76-2.13 1.2-3.19 1.2z" fill="#fff"/>
+      <circle cx="15.5" cy="15.5" r="2.5" fill="#fff" fillOpacity="0.7"/>
+      <circle cx="15.5" cy="15.5" r="1.05" fill="#222"/>
+    </svg>
+  ),
+  default: (
+    <svg width="20" height="20" viewBox="0 0 20 20" style={{display: "block"}} fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="20" height="20" rx="6" fill="#edeef2"/>
+      <circle cx="10" cy="10" r="5" fill="#1976D2" fillOpacity="0.16"/>
+    </svg>
+  ),
+};
+
+/** Milestone data for the progress bar demo */
+const demoMilestones = [
+  {
+    id: 1001,
+    iconKey: "javascript",
+    title: "Learn JavaScript",
+    description: "Master JavaScript fundamentals.",
+    status: "Completed",
+  },
+  {
+    id: 1002,
+    iconKey: "project",
+    title: "Build My First Project",
+    description: "Create and launch your first web project.",
+    status: "In Progress",
+  },
+  {
+    id: 1003,
+    iconKey: "internship",
+    title: "Get Internship",
+    description: "Apply and interview for tech internships.",
+    status: "Planned",
+  },
+];
+
 // PUBLIC_INTERFACE
 function App() {
-  // State for modal dialogs
+  // Demo only: the roadmap milestones are displayed at top
+  const [hoveredMilestone, setHoveredMilestone] = useState(null);
+  const [selectedMilestone, setSelectedMilestone] = useState(null);
+
+  // Existing goal state (unchanged)
   const [modal, setModal] = useState(null);
   const [editingGoal, setEditingGoal] = useState(null);
-  // State for goals (simple demo structure)
   const [goals, setGoals] = useState([
     {
       id: 1,
@@ -41,7 +99,7 @@ function App() {
     },
   ]);
 
-  // Modal openers
+  // Modal openers (existing)
   // PUBLIC_INTERFACE
   const openCreateModal = () => {
     setModal("create");
@@ -83,8 +141,21 @@ function App() {
       <Sidebar onCreate={openCreateModal} />
       <main className="dashboard-main">
         <Header />
-        {/* Prominent "My Goal Roadmap" section with visual progress bar */}
+        {/* My Goal Roadmap -- add interactive milestone roadmap at the top */}
         <section className="roadmap-section" style={{paddingTop: 0}}>
+          <div style={{
+            margin: "26px auto 20px auto",
+            maxWidth: 870,
+            width: "100%",
+          }}>
+            <MilestoneRoadmapBar
+              milestones={demoMilestones}
+              hoveredMilestone={hoveredMilestone}
+              setHoveredMilestone={setHoveredMilestone}
+              selectedMilestone={selectedMilestone}
+              setSelectedMilestone={setSelectedMilestone}
+            />
+          </div>
           <MyGoalRoadmap goals={goals} />
           <RoadmapGoals
             goals={goals}
@@ -107,7 +178,7 @@ function App() {
   );
 }
 
-// Sidebar navigation component
+// Sidebar navigation component (unchanged)
 function Sidebar({ onCreate }) {
   return (
     <aside className="dashboard-sidebar">
@@ -133,6 +204,256 @@ function Sidebar({ onCreate }) {
         </button>
       </div>
     </aside>
+  );
+}
+
+/**
+ * Interactive Roadmap Bar with Milestones (modern, minimal, responsive)
+ * PUBLIC_INTERFACE
+ */
+function MilestoneRoadmapBar({
+  milestones,
+  hoveredMilestone,
+  setHoveredMilestone,
+  selectedMilestone,
+  setSelectedMilestone,
+}) {
+  return (
+    <div
+      className="milestone-roadmap-bar"
+      style={{
+        width: "100%",
+        background: "var(--bg-main)",
+        borderRadius: "var(--radius)",
+        boxShadow: "var(--shadow-sm)",
+        border: "1px solid var(--border)",
+        padding: "24px 18px",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 18,
+        transition: "box-shadow .18s",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 620,
+          minHeight: 55,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <div
+          style={{
+            width: "98%",
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "relative",
+            minHeight: 0,
+          }}
+        >
+          {/* Horizontal progress line */}
+          <div
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              top: 34,
+              left: 0,
+              right: 0,
+              height: 5,
+              borderRadius: 4,
+              background:
+                "linear-gradient(90deg,var(--primary) 42%,var(--accent) 90%)",
+              opacity: 0.17,
+              zIndex: 0,
+            }}
+          />
+          {milestones.map((m, idx) => {
+            const isCompleted = m.status && m.status.toLowerCase() === "completed";
+            const isCurrent =
+              (hoveredMilestone && hoveredMilestone.id === m.id) ||
+              (selectedMilestone && selectedMilestone.id === m.id);
+            return (
+              <div
+                key={m.id}
+                tabIndex={0}
+                className="milestone-dot"
+                style={{
+                  position: "relative",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  flex: 1,
+                  minWidth: 0,
+                  zIndex: 2,
+                  cursor: "pointer",
+                  outline: isCurrent ? "2.1px solid #1976D2" : "none",
+                  background: "none",
+                }}
+                onMouseEnter={() => setHoveredMilestone(m)}
+                onMouseLeave={() => setHoveredMilestone(null)}
+                onFocus={() => setHoveredMilestone(m)}
+                onBlur={() => setHoveredMilestone(null)}
+                onClick={() =>
+                  setSelectedMilestone(
+                    selectedMilestone && selectedMilestone.id === m.id
+                      ? null
+                      : m
+                  )
+                }
+                aria-label={m.title}
+                title={m.title}
+              >
+                <div
+                  style={{
+                    width: 48,
+                    height: 48,
+                    borderRadius: "50%",
+                    background: isCompleted
+                      ? "linear-gradient(135deg,var(--primary) 65%,var(--accent) 100%)"
+                      : "#f8fafb",
+                    border: isCurrent
+                      ? "2.7px solid #1976D2"
+                      : isCompleted
+                      ? "2px solid var(--accent)"
+                      : "1.5px solid var(--border)",
+                    boxShadow: isCurrent
+                      ? "var(--shadow-md)"
+                      : "0 1.5px 4px 0 rgba(21,28,55,.11)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: 3,
+                    transition: "border .18s, box-shadow .23s",
+                    position: "relative",
+                  }}
+                >
+                  <span style={{display: "block"}}>
+                    {milestoneIcons[m.iconKey] || milestoneIcons.default}
+                  </span>
+                  {isCompleted && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: 5,
+                        right: 5,
+                        width: 15,
+                        height: 15,
+                        borderRadius: "50%",
+                        background: "#fff",
+                        border: "none",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        boxShadow: "0 1px 6px 0 rgba(122,214,163,0.14)",
+                      }}
+                    >
+                      <svg width="12" height="12" fill="none" viewBox="0 0 16 16">
+                        <circle cx="8" cy="8" r="7" fill="#09b36a" />
+                        <path d="M5.05 8.55l1.53 1.6 3.1-3.4" stroke="#fff" strokeWidth="1.1" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
+                <div
+                  className={`milestone-title${isCurrent ? " milestone-title-active" : ""}`}
+                  style={{
+                    fontSize: 14.7,
+                    fontWeight: 600,
+                    color: isCurrent
+                      ? "var(--primary)"
+                      : isCompleted
+                      ? "#222"
+                      : "var(--text-secondary)",
+                    marginTop: 2,
+                    textAlign: "center",
+                    maxWidth: 101,
+                    transition: "color .18s",
+                    cursor: "pointer",
+                    padding: 0,
+                    userSelect: "none",
+                  }}
+                >
+                  {m.title}
+                </div>
+                {/* Interactive tooltip or popover for current or hovered milestone */}
+                {isCurrent && (
+                  <div
+                    className="milestone-popover"
+                    style={{
+                      position: "absolute",
+                      left: "50%",
+                      top: -70,
+                      transform: "translateX(-50%)",
+                      minWidth: 180,
+                      maxWidth: 240,
+                      background: "#fff",
+                      color: "#1a1a1a",
+                      boxShadow: "var(--shadow-md)",
+                      borderRadius: 12,
+                      padding: "14px 18px 12px 18px",
+                      zIndex: 5,
+                      fontWeight: 500,
+                      fontSize: 14.2,
+                      textAlign: "center",
+                      pointerEvents: "none",
+                      opacity: 1,
+                      filter: "drop-shadow(0 2px 12px rgba(40,64,179,0.11))",
+                    }}
+                  >
+                    <div style={{ fontWeight: 700, fontSize: 15.6, marginBottom: 3 }}>
+                      {m.title}
+                    </div>
+                    <div style={{ color: "#555", fontWeight: 400 }}>{m.description}</div>
+                    <div style={{
+                      marginTop: 9,
+                      display: "flex",
+                      justifyContent: "center",
+                      gap: 7
+                    }}>
+                      <span className="status-badge"
+                        style={{
+                          background: isCompleted
+                            ? "#e3fcec"
+                            : m.status === "Planned" ? "#eaeffe" : "#fff5e0",
+                          color: isCompleted ? "#09b36a" : m.status === "Planned" ? "var(--primary)" : "var(--accent)",
+                          fontSize: "0.9em"
+                        }}>
+                        {m.status}
+                      </span>
+                    </div>
+                  </div>
+                )}
+                {/* Connector line between milestones */}
+                {idx < milestones.length - 1 && (
+                  <div
+                    aria-hidden="true"
+                    style={{
+                      position: "absolute",
+                      top: 24,
+                      left: "48px",
+                      height: 5,
+                      width: "calc(100% - 48px)",
+                      borderRadius: 4,
+                      background:
+                        isCompleted
+                          ? "linear-gradient(90deg,var(--primary) 60%,var(--accent) 100%)"
+                          : "var(--border)",
+                      opacity: isCompleted ? .82 : .33,
+                      zIndex: 1,
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -183,6 +504,7 @@ function MyGoalRoadmap({ goals }) {
   );
 }
 
+// Modern, minimal progress bar of steps (existing)
 function RoadmapPathBar({ total, completed, percent, allGoals }) {
   // Show up to 8 steps, use dots for more
   const showGoals = total <= 8 ? allGoals : allGoals.slice(0, 7);
@@ -385,7 +707,7 @@ function GoalCard({ goal, onEdit, onDelete, isRoot = false }) {
   );
 }
 
-// Modal for goal creation/editing
+// Modal for goal creation/editing (unchanged)
 function GoalModal({ type, goal, onClose, onCreate, onEdit, onDelete }) {
   const isEdit = type === "edit";
   const [title, setTitle] = useState(goal ? goal.title : "");
