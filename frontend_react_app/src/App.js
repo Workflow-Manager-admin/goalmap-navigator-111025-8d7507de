@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./App.css";
 
+
 /** Milestone icons for demo (SVG inline, modern/minimal) */
 const milestoneIcons = {
   javascript: (
@@ -56,11 +57,19 @@ const demoMilestones = [
   },
 ];
 
-// PUBLIC_INTERFACE
+import MilestoneModal from "./MilestoneModal";
+
+/**
+ * The main application, includes dashboard and roadmap/milestone modal logic.
+ * PUBLIC_INTERFACE
+ */
 function App() {
   // Demo only: the roadmap milestones are displayed at top
   const [hoveredMilestone, setHoveredMilestone] = useState(null);
-  const [selectedMilestone, setSelectedMilestone] = useState(null);
+  const [selectedMilestone, setSelectedMilestone] = useState(null); // Used for inline popover
+
+  // New: Modal state for milestone (independent of popover)
+  const [milestoneModal, setMilestoneModal] = useState(null);
 
   // Existing goal state (unchanged)
   const [modal, setModal] = useState(null);
@@ -154,6 +163,7 @@ function App() {
               setHoveredMilestone={setHoveredMilestone}
               selectedMilestone={selectedMilestone}
               setSelectedMilestone={setSelectedMilestone}
+              onMilestoneClick={setMilestoneModal}
             />
           </div>
           <MyGoalRoadmap goals={goals} />
@@ -164,6 +174,12 @@ function App() {
           />
         </section>
       </main>
+      {milestoneModal && (
+        <MilestoneModal
+          milestone={milestoneModal}
+          onClose={() => setMilestoneModal(null)}
+        />
+      )}
       {modal && (
         <GoalModal
           type={modal}
@@ -217,6 +233,7 @@ function MilestoneRoadmapBar({
   setHoveredMilestone,
   selectedMilestone,
   setSelectedMilestone,
+  onMilestoneClick, // New: callback for modal open
 }) {
   return (
     <div
@@ -298,13 +315,11 @@ function MilestoneRoadmapBar({
                 onMouseLeave={() => setHoveredMilestone(null)}
                 onFocus={() => setHoveredMilestone(m)}
                 onBlur={() => setHoveredMilestone(null)}
-                onClick={() =>
-                  setSelectedMilestone(
-                    selectedMilestone && selectedMilestone.id === m.id
-                      ? null
-                      : m
-                  )
-                }
+                // For popover only: inline quick info. For modal: open modal on click.
+                onClick={(e) => {
+                  // Prefer modal on click, leave popover for hover/focus
+                  if (onMilestoneClick) onMilestoneClick(m);
+                }}
                 aria-label={m.title}
                 title={m.title}
               >
@@ -380,7 +395,7 @@ function MilestoneRoadmapBar({
                 >
                   {m.title}
                 </div>
-                {/* Interactive tooltip or popover for current or hovered milestone */}
+                {/* Show inline popover for accessibility/quick view, but modal opens on click */}
                 {isCurrent && (
                   <div
                     className="milestone-popover"
@@ -703,112 +718,6 @@ function GoalCard({ goal, onEdit, onDelete, isRoot = false }) {
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-// Modal for goal creation/editing (unchanged)
-function GoalModal({ type, goal, onClose, onCreate, onEdit, onDelete }) {
-  const isEdit = type === "edit";
-  const [title, setTitle] = useState(goal ? goal.title : "");
-  const [description, setDescription] = useState(goal ? goal.description : "");
-  const [status, setStatus] = useState(goal ? goal.status : "Planned");
-  const [progress, setProgress] = useState(goal ? goal.progress : 0);
-
-  // PUBLIC_INTERFACE
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const data = {
-      ...(goal ? { id: goal.id, children: goal.children || [] } : {}),
-      title: title.trim(),
-      description: description.trim(),
-      status,
-      progress: Number(progress),
-    };
-    if (isEdit) {
-      onEdit(data);
-    } else {
-      onCreate(data);
-    }
-  };
-
-  // PUBLIC_INTERFACE
-  const handleDeleteClick = () => {
-    if (goal) {
-      onDelete(goal.id);
-    }
-  };
-
-  return (
-    <div className="modal-overlay" tabIndex={-1} onClick={onClose} aria-modal="true" role="dialog">
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-        <h2>{isEdit ? "Edit Goal" : "Create Goal"}</h2>
-        <form className="modal-form" onSubmit={handleSubmit}>
-          <label>
-            Title
-            <input
-              autoFocus
-              type="text"
-              required
-              value={title}
-              maxLength={60}
-              onChange={(e) => setTitle(e.target.value)}
-              className="input"
-              placeholder="Goal Title"
-            />
-          </label>
-          <label>
-            Description
-            <textarea
-              value={description}
-              rows={3}
-              maxLength={160}
-              onChange={(e) => setDescription(e.target.value)}
-              className="input"
-              placeholder="Describe this goal…"
-            />
-          </label>
-          <label>
-            Status
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className="input">
-              <option>Planned</option>
-              <option>In Progress</option>
-              <option>Completed</option>
-            </select>
-          </label>
-          <label>
-            Progress &nbsp;
-            <input
-              type="number"
-              min={0}
-              max={100}
-              value={progress}
-              onChange={(e) => setProgress(e.target.value)}
-              className="input"
-              style={{ width: 70, display: "inline-block" }}
-            />
-            <span style={{ marginLeft: 5, fontSize: 14, color: "#888" }}>%</span>
-          </label>
-          <div className="modal-actions">
-            <button type="submit" className="btn-accent">
-              {isEdit ? "Save" : "Create"}
-            </button>
-            <button type="button" className="btn-secondary" onClick={onClose}>
-              Cancel
-            </button>
-            {isEdit && (
-              <button
-                type="button"
-                className="btn-danger"
-                onClick={handleDeleteClick}
-                style={{ marginLeft: "auto" }}
-              >
-                Delete
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
     </div>
   );
 }
