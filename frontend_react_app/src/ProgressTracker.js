@@ -13,9 +13,10 @@ function ProgressTracker({ milestones = [] }) {
   ).length;
   const target = total === 0 ? 0 : Math.round((completed / total) * 100);
 
-  // Animated progress state
+  // Animated progress state with color bump effect for transitions
   const [displayPercent, setDisplayPercent] = useState(target);
   const [displayCount, setDisplayCount] = useState(completed);
+  const [bump, setBump] = useState(false);
   const animationRef = useRef();
 
   // Animate value change (percent and number) with smooth increments
@@ -24,8 +25,11 @@ function ProgressTracker({ milestones = [] }) {
     let end = target;
     let startCount = displayCount;
     let endCount = completed;
-    let duration = 600; // ms
+    let duration = 650; // ms (slightly longer for smoothness)
     let startTime = null;
+
+    // Animate: if % bar changes, accentuate fill with bump effect
+    if (start !== end) setBump(true);
 
     // Cancel any running animation
     if (animationRef.current) cancelAnimationFrame(animationRef.current);
@@ -51,6 +55,7 @@ function ProgressTracker({ milestones = [] }) {
       } else {
         setDisplayPercent(end);
         setDisplayCount(endCount);
+        setTimeout(() => setBump(false), 480);
       }
     }
 
@@ -115,6 +120,10 @@ function ProgressTracker({ milestones = [] }) {
           }}
         >
           <div
+            className={
+              "goal-progress-fill goal-progress-fill-animated" +
+              (bump ? " progress-bump-anim" : "")
+            }
             style={{
               width: `${displayPercent}%`,
               height: "100%",
@@ -124,9 +133,11 @@ function ProgressTracker({ milestones = [] }) {
               display: "flex",
               alignItems: "center",
               justifyContent: "flex-end",
-              transition: "width 0.56s cubic-bezier(0.4,0,0.2,1)",
+              transition: "width 0.56s cubic-bezier(0.4,0,0.2,1), box-shadow 0.22s cubic-bezier(.38,.6,.37,1.08)",
               minWidth: displayPercent < 8 ? 24 : 38,
-              boxShadow: displayPercent === 100
+              boxShadow: bump
+                ? "0 2px 12px 0 rgba(33,85,230,0.13)"
+                : displayPercent === 100
                 ? "0 2px 10px 0 rgba(52,209,118,.09)"
                 : undefined,
             }}

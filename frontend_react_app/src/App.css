@@ -233,11 +233,56 @@ body, html {
   pointer-events: none;
 }
 .milestone-dot {
-  transition: outline 0.15s, box-shadow 0.20s;
+  transition: outline 0.15s, box-shadow 0.20s, background 0.26s cubic-bezier(.38,.6,.37,1.14), border 0.22s cubic-bezier(.38,.6,.37,1.14);
+  position: relative;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: milestoneFadeSlideIn .54s cubic-bezier(.38,.6,.37,1.14) forwards;
 }
 .milestone-dot:focus,
 .milestone-dot:hover {
   outline: 2.1px solid var(--primary);
+}
+
+@keyframes milestoneFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+/* Ripple highlight for status transitions */
+.status-badge-ripple {
+  position: relative;
+  overflow: visible;
+}
+.status-badge-ripple::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  background: inherit;
+  opacity: 0.30;
+  animation: statusRipple .63s cubic-bezier(.38,.6,.37,1.08);
+  transform: translate(-50%, -50%);
+}
+@keyframes statusRipple {
+  from { width: 0; height: 0; opacity: 0.22;}
+  60%  { width: 230%; height: 230%; opacity: 0.13;}
+  to { width: 310%; height: 310%; opacity: 0; }
+}
+
+/* Progress bar smooth fill — further enhanced by React inline style */
+.goal-progress-fill,
+.goal-progress-fill-animated {
+  transition: width 0.58s cubic-bezier(0.53,.18,.3,.94), background 0.26s cubic-bezier(.38,.6,.37,1.14);
 }
 .milestone-title-active {
   color: var(--primary) !important;
